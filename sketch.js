@@ -13,7 +13,7 @@ const gap = 3;
 let blockIndicator = 0;
 let blockIndicator2 = 0;
 const timeStep = 500;
-let timeStep2 = 600;
+let timeStep2 = 500;
 
 let osc, osc2;
 
