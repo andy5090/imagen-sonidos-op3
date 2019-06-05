@@ -12,8 +12,12 @@ const gap = 3;
 
 let blockIndicator = 0;
 let blockIndicator2 = 0;
-const timeStep = 500;
+let timeStep = 500;
 let timeStep2 = 500;
+let interval1;
+let interval2;
+let stepUpFlag1 = false;
+let stepUpFlag2 = false;
 
 let osc, osc2;
 
@@ -71,8 +75,8 @@ let onAir = false;
 
 function ready() {
   onAir = true;
-  setInterval(seqIndicator1, timeStep);
-  setInterval(seqIndicator2, timeStep2);
+  interval1 = setInterval(seqIndicator1, timeStep);
+  interval2 = setInterval(seqIndicator2, timeStep2);
 }
 
 function seqIndicator1() {
@@ -80,6 +84,7 @@ function seqIndicator1() {
   if (blockIndicator === numBlockHori) {
     blockIndicator = 0;
   }
+  stepUpFlag1 = true;
 }
 
 function seqIndicator2() {
@@ -87,6 +92,7 @@ function seqIndicator2() {
   if (blockIndicator2 === numBlockVert) {
     blockIndicator2 = 0;
   }
+  stepUpFlag2 = true;
 }
 
 function drawBlocks(blocksColor) {
@@ -200,7 +206,7 @@ function title() {
   textSize(50);
   textStyle(BOLD);
   textAlign(CENTER);
-  text("Imagen Sonidos Web Op.2", 0, height / 4, width);
+  text("Imagen Sonidos Web Op.3", 0, height / 4, width);
 
   textSize(30);
   textStyle(NORMAL);
@@ -242,6 +248,29 @@ function titleAnimation() {
   }
 }
 
+function speedDecision1(blocksColor) {
+  let hueSum = 0;
+  for (let i = 0; i < numBlockVert; i++) {
+    hueSum += hue(blocksColor[blockIndicator + i * numBlockHori]);
+  }
+
+  timeStep = map(hueSum / numBlockVert, 0, 255, 300, 900);
+
+  clearInterval(interval1);
+  interval1 = setInterval(seqIndicator1, timeStep);
+}
+function speedDecision2(blocksColor) {
+  let brtSum = 0;
+  for (let i = 0; i < numBlockHori; i++) {
+    brtSum += brightness(blocksColor[i + blockIndicator2 * numBlockHori]);
+  }
+
+  timeStep2 = map(brtSum / numBlockHori, 0, 255, 300, 900);
+
+  clearInterval(interval2);
+  interval2 = setInterval(seqIndicator2, timeStep2);
+}
+
 function draw() {
   background(0);
 
@@ -255,6 +284,16 @@ function draw() {
     const blocksColor = video2Mozaic();
     drawBlocks(blocksColor);
     soundGenerate(blocksColor);
+
+    if (stepUpFlag1) {
+      speedDecision1(blocksColor);
+      stepUpFlag1 = false;
+    }
+
+    if (stepUpFlag2) {
+      speedDecision2(blocksColor);
+      stepUpFlag2 = false;
+    }
   }
 }
 
