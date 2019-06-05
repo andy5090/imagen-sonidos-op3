@@ -11,10 +11,11 @@ let rectSize = 80;
 const gap = 3;
 
 let blockIndicator = 0;
-let prevMilSec;
+let blockIndicator2 = 0;
 const timeStep = 500;
+let timeStep2 = 600;
 
-let osc;
+let osc, osc2;
 
 let titleShowed = false;
 let fadeIn = 0;
@@ -47,6 +48,7 @@ function setup() {
   background(0);
 
   osc = new Array(numBlockVert);
+  osc2 = new Array(numBlockHori);
 
   for (let i = 0; i < numBlockVert; i++) {
     osc[i] = new p5.Oscillator();
@@ -55,13 +57,36 @@ function setup() {
     osc[i].freq(240);
     osc[i].amp(0.1, 1);
   }
+
+  for (let i = 0; i < numBlockHori; i++) {
+    osc2[i] = new p5.Oscillator();
+    osc2[i].setType("sine");
+    osc2[i].start();
+    osc2[i].freq(200);
+    osc2[i].amp(0.1, 1);
+  }
 }
 
 let onAir = false;
 
 function ready() {
   onAir = true;
-  prevMilSec = millis();
+  setInterval(seqIndicator1, timeStep);
+  setInterval(seqIndicator2, timeStep2);
+}
+
+function seqIndicator1() {
+  blockIndicator++;
+  if (blockIndicator === numBlockHori) {
+    blockIndicator = 0;
+  }
+}
+
+function seqIndicator2() {
+  blockIndicator2++;
+  if (blockIndicator2 === numBlockVert) {
+    blockIndicator2 = 0;
+  }
 }
 
 function drawBlocks(blocksColor) {
@@ -77,7 +102,18 @@ function drawBlocks(blocksColor) {
       );
 
       if (x === blockIndicator) {
-        fill(255, 255, 255, 140);
+        fill(255, 255, 255, 160);
+        rect(
+          x * rectSize + gap,
+          y * rectSize + gap,
+          rectSize - gap,
+          rectSize - gap,
+          5
+        );
+      }
+
+      if (y === blockIndicator2) {
+        fill(255, 255, 255, 160);
         rect(
           x * rectSize + gap,
           y * rectSize + gap,
@@ -126,10 +162,13 @@ function video2Mozaic() {
 
 function soundGenerate(blocksColor) {
   for (let i = 0; i < numBlockVert; i++) {
-    const freq = hue(blocksColor[blockIndicator + i * numBlockHori]);
+    const hueColor = hue(blocksColor[blockIndicator + i * numBlockHori]);
     const brt = brightness(blocksColor[blockIndicator + i * numBlockHori]);
 
-    osc[i].freq(map(freq, 0, 255, 50, 800));
+    const freq = map(hueColor, 0, 255, 200, 800);
+    //console.log(freq);
+    osc[i].freq(freq);
+
     if (brt < 40) {
       osc[i].amp(0.06, 0.2);
     } else if (brt < 80) {
@@ -138,20 +177,37 @@ function soundGenerate(blocksColor) {
       osc[i].amp(0.08, 0.2);
     }
   }
+
+  for (let i = 0; i < numBlockHori; i++) {
+    const hueColor2 = hue(blocksColor[i + blockIndicator2 * numBlockHori]);
+    const brt2 = brightness(blocksColor[i + blockIndicator2 * numBlockHori]);
+
+    const freq2 = map(hueColor2, 0, 255, 200, 800);
+    //console.log(freq);
+    osc2[i].freq(freq2);
+
+    if (brt2 < 40) {
+      osc2[i].amp(0.06, 0.2);
+    } else if (brt2 < 80) {
+      osc2[i].amp(0.1, 0.2);
+    } else {
+      osc2[i].amp(0.08, 0.2);
+    }
+  }
 }
 
 function title() {
   textSize(50);
   textStyle(BOLD);
   textAlign(CENTER);
-  text("Imagen Sonidos Web Op.1", 0, 200, width);
+  text("Imagen Sonidos Web Op.2", 0, height / 4, width);
 
   textSize(30);
   textStyle(NORMAL);
-  text("Created by Andy DK Lee", 0, 500, width);
+  text("Created by Andy DK Lee", 0, height / 2, width);
 
   textSize(20);
-  text("- Click or touch the screen to continue -", 0, 600, width);
+  text("- Click or touch the screen to continue -", 0, (height / 4) * 3, width);
 }
 
 function titleAnimation() {
@@ -199,14 +255,6 @@ function draw() {
     const blocksColor = video2Mozaic();
     drawBlocks(blocksColor);
     soundGenerate(blocksColor);
-
-    if (prevMilSec + timeStep <= millis()) {
-      blockIndicator++;
-      if (blockIndicator === numBlockHori) {
-        blockIndicator = 0;
-      }
-      prevMilSec = millis();
-    }
   }
 }
 
@@ -217,8 +265,8 @@ function mousePressed() {
   }
 }
 
-function mouseClicked() {
-  if (titleShowed) {
+function keyPressed() {
+  if (key === "f" || key === "F") {
     let fs = fullscreen();
     fullscreen(!fs);
   }
